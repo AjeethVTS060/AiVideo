@@ -1,0 +1,53 @@
+/* WarningModal.css */
+
+/* Overlay that covers the entire screen */
+.warning-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it is on top of other content */
+  }
+  
+  /* Modal content box */
+  .warning-modal-content {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px; /* Adjust as needed */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+  
+  /* Heading inside the modal */
+  .warning-modal-content h2 {
+    margin-top: 0;
+    color: #e74c3c; /* Red color for warning */
+  }
+  
+  /* Paragraph inside the modal */
+  .warning-modal-content p {
+    color: #333;
+  }
+  
+  /* Button inside the modal */
+  .warning-modal-content button {
+    background: #e74c3c; /* Red color for the button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+  
+  .warning-modal-content button:hover {
+    background: #c0392b; /* Darker red on hover */
+  }
+  
