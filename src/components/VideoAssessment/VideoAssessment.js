@@ -26,7 +26,6 @@ const VideoAssessment = () => {
   const mediaRecorderRef = useRef(null);
   const recognitionRef = useRef(null);
 
-  // Function to speak text
   const speakText = (text, callback) => {
     if (typeof window.speechSynthesis !== 'undefined') {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -39,7 +38,6 @@ const VideoAssessment = () => {
     }
   };
 
-  // Function to handle the next question
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
