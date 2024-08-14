@@ -26,6 +26,10 @@ const VideoAssessment = () => {
   const mediaRecorderRef = useRef(null);
   const recognitionRef = useRef(null);
 
+  const handleStopRecording = useCallback(() => {
+    setIsConfirmationModalOpen(true);
+  }, []);
+
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -35,7 +39,7 @@ const VideoAssessment = () => {
     } else {
       handleStopRecording();
     }
-  }, [currentQuestionIndex, questions.length]);
+  }, [currentQuestionIndex, handleStopRecording]);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
@@ -117,10 +121,6 @@ const VideoAssessment = () => {
     } else {
       console.error("Webcam stream not available");
     }
-  };
-
-  const handleStopRecording = () => {
-    setIsConfirmationModalOpen(true);
   };
 
   const handleConfirmEndExam = () => {
