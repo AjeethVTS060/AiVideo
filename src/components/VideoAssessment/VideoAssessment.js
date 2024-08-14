@@ -21,6 +21,7 @@ const VideoAssessment = () => {
   const [displayedQuestion, setDisplayedQuestion] = useState('');
   const [displayedAnswer, setDisplayedAnswer] = useState('');
   const [waitingForNextQuestion, setWaitingForNextQuestion] = useState(false);
+  const [hasQuestionBeenDisplayed, setHasQuestionBeenDisplayed] = useState(false);
 
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -29,7 +30,7 @@ const VideoAssessment = () => {
   const speakText = (text, callback) => {
     if (typeof window.speechSynthesis !== 'undefined') {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US'; // Set the language if needed
+      utterance.lang = 'en-US';
       utterance.onend = callback;
       utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
       window.speechSynthesis.speak(utterance);
@@ -43,6 +44,7 @@ const VideoAssessment = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
+      setHasQuestionBeenDisplayed(false); // Reset for next question
       if (recognitionRef.current) recognitionRef.current.start();
     } else {
       handleStopRecording();
@@ -54,7 +56,7 @@ const VideoAssessment = () => {
       recognitionRef.current = new window.webkitSpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US'; // Set the language if needed
+      recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = event => {
         const transcript = Array.from(event.results)
@@ -68,6 +70,7 @@ const VideoAssessment = () => {
           return newTranscripts;
         });
         setWaitingForNextQuestion(true);
+        // Automatically move to the next question after a delay
         setTimeout(handleNextQuestion, 10000); // 10 seconds wait time
       };
 
@@ -87,29 +90,29 @@ const VideoAssessment = () => {
   }, [currentQuestionIndex, handleNextQuestion]);
 
   useEffect(() => {
-    if (questions.length > 0) {
+    if (questions.length > 0 && isRecording) {
       const fullQuestion = questions[currentQuestionIndex].question;
       setDisplayedQuestion(fullQuestion);
-      speakText(fullQuestion, () => {
+      setHasQuestionBeenDisplayed(true); // Mark question as displayed
+    }
+  }, [currentQuestionIndex, isRecording]);
+
+  useEffect(() => {
+    if (hasQuestionBeenDisplayed) {
+      speakText(displayedQuestion, () => {
         speakText('Now tell me your answer.', () => {
           // Callback can be used for additional actions if needed
         });
       });
     }
-  }, [currentQuestionIndex]);
+  }, [hasQuestionBeenDisplayed, displayedQuestion]);
 
   useEffect(() => {
     if (transcripts[currentQuestionIndex]) {
       const fullAnswer = transcripts[currentQuestionIndex];
-      let index = 0;
-      const typingInterval = setInterval(() => {
-        if (index < fullAnswer.length) {
-          setDisplayedAnswer(fullAnswer.slice(0, index + 1));
-          index += 1;
-        } else {
-          clearInterval(typingInterval);
-        }
-      }, 50); // Adjust speed here
+      setDisplayedAnswer(fullAnswer);
+      // Automatically move to the next question after a delay
+      setTimeout(handleNextQuestion, 10000); // 10 seconds wait time
     }
   }, [transcripts, currentQuestionIndex]);
 
