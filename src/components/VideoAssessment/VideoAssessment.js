@@ -14,13 +14,14 @@ const questions = [
 const VideoAssessment = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
+  const [displayedAnswer, setDisplayedAnswer] = useState('');
+  const [displayedQuestion, setDisplayedQuestion] = useState('');
+  const [waitingForNextQuestion, setWaitingForNextQuestion] = useState(false);
+  const [hasQuestionBeenDisplayed, setHasQuestionBeenDisplayed] = useState(false);
+  const [answerRecorded, setAnswerRecorded] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [feedbackCompleted, setFeedbackCompleted] = useState(false);
-  const [displayedQuestion, setDisplayedQuestion] = useState('');
-  const [displayedAnswer, setDisplayedAnswer] = useState('');
-  const [waitingForNextQuestion, setWaitingForNextQuestion] = useState(false);
-  const [hasQuestionBeenDisplayed, setHasQuestionBeenDisplayed] = useState(false);
 
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -43,6 +44,7 @@ const VideoAssessment = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
+      setAnswerRecorded(false);
       setHasQuestionBeenDisplayed(false);
       if (recognitionRef.current) recognitionRef.current.start();
     } else {
@@ -53,8 +55,8 @@ const VideoAssessment = () => {
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
-      recognitionRef.current.continuous = true; // Set to true for continuous speech recognition
-      recognitionRef.current.interimResults = true; // Allows interim results for real-time feedback
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = false; // Use false for final results
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = event => {
@@ -62,13 +64,14 @@ const VideoAssessment = () => {
           .map(result => result[0])
           .map(result => result.transcript)
           .join('');
-        console.log('Transcript received:', transcript);
         setDisplayedAnswer(transcript);
+        setAnswerRecorded(true);
+        setWaitingForNextQuestion(true);
+        setTimeout(handleNextQuestion, 5000); // Adjust wait time as needed
       };
 
       recognitionRef.current.onspeechend = () => {
-        setWaitingForNextQuestion(true);
-        setTimeout(handleNextQuestion, 5000); // Adjust wait time as needed
+        recognitionRef.current.stop();
       };
 
       recognitionRef.current.onerror = event => {
@@ -99,6 +102,22 @@ const VideoAssessment = () => {
       });
     }
   }, [hasQuestionBeenDisplayed, displayedQuestion]);
+
+  useEffect(() => {
+    if (answerRecorded) {
+      // Simulate typing effect for the answer
+      const fullAnswer = displayedAnswer;
+      let index = 0;
+      const typingInterval = setInterval(() => {
+        if (index < fullAnswer.length) {
+          setDisplayedAnswer(fullAnswer.slice(0, index + 1));
+          index += 1;
+        } else {
+          clearInterval(typingInterval);
+        }
+      }, 50); // Adjust speed here
+    }
+  }, [answerRecorded, displayedAnswer]);
 
   const handleStartRecording = () => {
     if (webcamRef.current && webcamRef.current.video && webcamRef.current.video.srcObject) {
