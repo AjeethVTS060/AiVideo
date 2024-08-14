@@ -26,6 +26,14 @@ const VideoAssessment = () => {
   const mediaRecorderRef = useRef(null);
   const recognitionRef = useRef(null);
 
+  const speakText = (text, callback) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US'; // Set language
+    utterance.onend = callback;
+    utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
+    speechSynthesis.speak(utterance);
+  };
+
   const handleStopRecording = useCallback(() => {
     setIsConfirmationModalOpen(true);
   }, []);
@@ -78,25 +86,13 @@ const VideoAssessment = () => {
   useEffect(() => {
     if (questions.length > 0) {
       const fullQuestion = questions[currentQuestionIndex].question;
-      let index = 0;
-      const typingInterval = setInterval(() => {
-        if (index < fullQuestion.length) {
-          setDisplayedQuestion(fullQuestion.slice(0, index + 1));
-          index += 1;
-        } else {
-          clearInterval(typingInterval);
-          // Start speaking the question once fully displayed
-          const utterance = new SpeechSynthesisUtterance(fullQuestion);
-          utterance.lang = 'en-US'; // Set language
-          utterance.onstart = () => console.log('Speaking:', fullQuestion);
-          utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
-          speechSynthesis.speak(utterance);
-          // Add "Now tell me your answer" prompt after the question is spoken
-          setTimeout(() => {
-            setDisplayedQuestion(prev => prev + ' Now tell me your answer.');
-          }, 1000); // Delay before adding the prompt
-        }
-      }, 50); // Adjust speed here
+      setDisplayedQuestion(fullQuestion);
+      speakText(fullQuestion, () => {
+        // After the question is spoken, add the "Now tell me your answer" prompt
+        speakText('Now tell me your answer.', () => {
+          // Callback can be used for additional actions if needed
+        });
+      });
     }
   }, [currentQuestionIndex]);
 
