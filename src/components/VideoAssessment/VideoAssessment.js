@@ -14,7 +14,6 @@ const questions = [
 const VideoAssessment = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [transcripts, setTranscripts] = useState([]);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [feedbackCompleted, setFeedbackCompleted] = useState(false);
@@ -44,7 +43,7 @@ const VideoAssessment = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
-      setHasQuestionBeenDisplayed(false); // Reset for next question
+      setHasQuestionBeenDisplayed(false);
       if (recognitionRef.current) recognitionRef.current.start();
     } else {
       handleStopRecording();
@@ -54,8 +53,8 @@ const VideoAssessment = () => {
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.continuous = true; // Set to true for continuous speech recognition
+      recognitionRef.current.interimResults = true; // Allows interim results for real-time feedback
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = event => {
@@ -64,18 +63,12 @@ const VideoAssessment = () => {
           .map(result => result.transcript)
           .join('');
         console.log('Transcript received:', transcript);
-        setTranscripts(prevTranscripts => {
-          const newTranscripts = [...prevTranscripts];
-          newTranscripts[currentQuestionIndex] = transcript;
-          return newTranscripts;
-        });
-        setWaitingForNextQuestion(true);
-        // Automatically move to the next question after a delay
-        setTimeout(handleNextQuestion, 10000); // 10 seconds wait time
+        setDisplayedAnswer(transcript);
       };
 
       recognitionRef.current.onspeechend = () => {
-        recognitionRef.current.stop();
+        setWaitingForNextQuestion(true);
+        setTimeout(handleNextQuestion, 5000); // Adjust wait time as needed
       };
 
       recognitionRef.current.onerror = event => {
@@ -93,7 +86,7 @@ const VideoAssessment = () => {
     if (questions.length > 0 && isRecording) {
       const fullQuestion = questions[currentQuestionIndex].question;
       setDisplayedQuestion(fullQuestion);
-      setHasQuestionBeenDisplayed(true); // Mark question as displayed
+      setHasQuestionBeenDisplayed(true);
     }
   }, [currentQuestionIndex, isRecording]);
 
@@ -106,15 +99,6 @@ const VideoAssessment = () => {
       });
     }
   }, [hasQuestionBeenDisplayed, displayedQuestion]);
-
-  useEffect(() => {
-    if (transcripts[currentQuestionIndex]) {
-      const fullAnswer = transcripts[currentQuestionIndex];
-      setDisplayedAnswer(fullAnswer);
-      // Automatically move to the next question after a delay
-      setTimeout(handleNextQuestion, 10000); // 10 seconds wait time
-    }
-  }, [transcripts, currentQuestionIndex]);
 
   const handleStartRecording = () => {
     if (webcamRef.current && webcamRef.current.video && webcamRef.current.video.srcObject) {
