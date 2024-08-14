@@ -18,7 +18,6 @@ const VideoAssessment = () => {
   const [displayedQuestion, setDisplayedQuestion] = useState('');
   const [waitingForNextQuestion, setWaitingForNextQuestion] = useState(false);
   const [hasQuestionBeenDisplayed, setHasQuestionBeenDisplayed] = useState(false);
-  const [answerRecorded, setAnswerRecorded] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [feedbackCompleted, setFeedbackCompleted] = useState(false);
@@ -44,7 +43,6 @@ const VideoAssessment = () => {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
-      setAnswerRecorded(false);
       setHasQuestionBeenDisplayed(false);
       if (recognitionRef.current) recognitionRef.current.start();
     } else {
@@ -55,8 +53,8 @@ const VideoAssessment = () => {
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = false; // Use false for final results
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = event => {
@@ -65,7 +63,6 @@ const VideoAssessment = () => {
           .map(result => result.transcript)
           .join('');
         setDisplayedAnswer(transcript);
-        setAnswerRecorded(true);
         setWaitingForNextQuestion(true);
         setTimeout(handleNextQuestion, 5000); // Adjust wait time as needed
       };
@@ -96,16 +93,13 @@ const VideoAssessment = () => {
   useEffect(() => {
     if (hasQuestionBeenDisplayed) {
       speakText(displayedQuestion, () => {
-        speakText('Now tell me your answer.', () => {
-          // Callback can be used for additional actions if needed
-        });
+        speakText('Now tell me your answer.');
       });
     }
   }, [hasQuestionBeenDisplayed, displayedQuestion]);
 
   useEffect(() => {
-    if (answerRecorded) {
-      // Simulate typing effect for the answer
+    if (displayedAnswer) {
       const fullAnswer = displayedAnswer;
       let index = 0;
       const typingInterval = setInterval(() => {
@@ -117,7 +111,7 @@ const VideoAssessment = () => {
         }
       }, 50); // Adjust speed here
     }
-  }, [answerRecorded, displayedAnswer]);
+  }, [displayedAnswer]);
 
   const handleStartRecording = () => {
     if (webcamRef.current && webcamRef.current.video && webcamRef.current.video.srcObject) {
