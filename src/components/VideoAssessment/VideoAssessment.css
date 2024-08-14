@@ -11,6 +11,8 @@
   padding: 20px;
 }
 
+
+
 /* Header */
 .video-assessment-container h1 {
   font-size: 3rem;
@@ -37,6 +39,7 @@
 .webcam-container video {
   width: 100%;
   border-radius: 20px;
+  height: auto;
 }
 
 /* Buttons */
@@ -245,5 +248,56 @@ button:hover {
 @keyframes blink {
   50% {
     border-color: transparent;
+  }
+}
+@media (max-width: 768px) {
+  /* Tablet */
+  .webcam-container {
+    width: 80%;
+  }
+
+  .video-assessment-container h1 {
+    font-size: 2rem;
+  }
+
+  .current-question {
+    font-size: 1.5rem;
+  }
+
+  .preview-container {
+    padding: 15px;
+  }
+
+  .preview-container h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Mobile */
+  .webcam-container {
+    width: 100%;
+  }
+
+  .preview-container {
+    padding: 10px;
+    box-shadow: none;
+  }
+
+  .preview-container h2 {
+    font-size: 1.2rem;
+  }
+
+  .video-assessment-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .current-question {
+    font-size: 1.2rem;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 1rem;
   }
 }

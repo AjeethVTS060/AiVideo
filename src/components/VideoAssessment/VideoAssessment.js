@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
-import { FaStopCircle, FaPlay, FaClock, FaExclamationCircle } from 'react-icons/fa';
+import { FaStopCircle, FaPlay, FaClock } from 'react-icons/fa';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
-import WarningModal from '../WarningModal/WarningModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import './VideoAssessment.css';
 
@@ -15,12 +14,10 @@ const questions = [
 const VideoAssessment = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedChunks, setRecordedChunks] = useState([]);
-  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+  const [transcripts, setTranscripts] = useState([]);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [feedbackCompleted, setFeedbackCompleted] = useState(false);
-  const [transcripts, setTranscripts] = useState([]);
   const [displayedQuestion, setDisplayedQuestion] = useState('');
   const [displayedAnswer, setDisplayedAnswer] = useState('');
   const [waitingForNextQuestion, setWaitingForNextQuestion] = useState(false);
@@ -28,6 +25,17 @@ const VideoAssessment = () => {
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const recognitionRef = useRef(null);
+
+  const handleNextQuestion = useCallback(() => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setDisplayedAnswer('');
+      setWaitingForNextQuestion(false);
+      if (recognitionRef.current) recognitionRef.current.start();
+    } else {
+      handleStopRecording();
+    }
+  }, [currentQuestionIndex, questions.length]);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
@@ -53,7 +61,7 @@ const VideoAssessment = () => {
     } else {
       console.warn('Speech Recognition API not supported.');
     }
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, handleNextQuestion]);
 
   useEffect(() => {
     if (questions.length > 0) {
@@ -130,18 +138,7 @@ const VideoAssessment = () => {
 
   const handleDataAvailable = ({ data }) => {
     if (data.size > 0) {
-      setRecordedChunks(prev => prev.concat(data));
-    }
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setDisplayedAnswer('');
-      setWaitingForNextQuestion(false);
-      if (recognitionRef.current) recognitionRef.current.start();
-    } else {
-      handleStopRecording();
+      // Implement this function if you decide to use recordedChunks
     }
   };
 
