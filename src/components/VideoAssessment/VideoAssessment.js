@@ -26,18 +26,20 @@ const VideoAssessment = () => {
   const mediaRecorderRef = useRef(null);
   const recognitionRef = useRef(null);
 
+  // Function to speak text
   const speakText = (text, callback) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US'; // Set language
-    utterance.onend = callback;
-    utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
-    speechSynthesis.speak(utterance);
+    if (typeof window.speechSynthesis !== 'undefined') {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US'; // Set the language if needed
+      utterance.onend = callback;
+      utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn('Speech Synthesis API not supported.');
+    }
   };
 
-  const handleStopRecording = useCallback(() => {
-    setIsConfirmationModalOpen(true);
-  }, []);
-
+  // Function to handle the next question
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -47,14 +49,15 @@ const VideoAssessment = () => {
     } else {
       handleStopRecording();
     }
-  }, [currentQuestionIndex, handleStopRecording]);
+  }, [currentQuestionIndex]);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
       recognitionRef.current = new window.webkitSpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US'; // Set language
+      recognitionRef.current.lang = 'en-US'; // Set the language if needed
+
       recognitionRef.current.onresult = event => {
         const transcript = Array.from(event.results)
           .map(result => result[0])
@@ -69,9 +72,11 @@ const VideoAssessment = () => {
         setWaitingForNextQuestion(true);
         setTimeout(handleNextQuestion, 10000); // 10 seconds wait time
       };
+
       recognitionRef.current.onspeechend = () => {
         recognitionRef.current.stop();
       };
+
       recognitionRef.current.onerror = event => {
         console.error('Speech recognition error:', event.error);
         if (event.error === 'no-speech') {
@@ -88,7 +93,6 @@ const VideoAssessment = () => {
       const fullQuestion = questions[currentQuestionIndex].question;
       setDisplayedQuestion(fullQuestion);
       speakText(fullQuestion, () => {
-        // After the question is spoken, add the "Now tell me your answer" prompt
         speakText('Now tell me your answer.', () => {
           // Callback can be used for additional actions if needed
         });
@@ -128,6 +132,10 @@ const VideoAssessment = () => {
     } else {
       console.error("Webcam stream not available");
     }
+  };
+
+  const handleStopRecording = () => {
+    setIsConfirmationModalOpen(true);
   };
 
   const handleConfirmEndExam = () => {
