@@ -91,6 +91,10 @@ const VideoAssessment = () => {
           utterance.onstart = () => console.log('Speaking:', fullQuestion);
           utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
           speechSynthesis.speak(utterance);
+          // Add "Now tell me your answer" prompt after the question is spoken
+          setTimeout(() => {
+            setDisplayedQuestion(prev => prev + ' Now tell me your answer.');
+          }, 1000); // Delay before adding the prompt
         }
       }, 50); // Adjust speed here
     }
