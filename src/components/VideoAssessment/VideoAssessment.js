@@ -46,11 +46,13 @@ const VideoAssessment = () => {
       recognitionRef.current = new window.webkitSpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US'; // Set language
       recognitionRef.current.onresult = event => {
         const transcript = Array.from(event.results)
           .map(result => result[0])
           .map(result => result.transcript)
           .join('');
+        console.log('Transcript received:', transcript);
         setTranscripts(prevTranscripts => {
           const newTranscripts = [...prevTranscripts];
           newTranscripts[currentQuestionIndex] = transcript;
@@ -61,6 +63,12 @@ const VideoAssessment = () => {
       };
       recognitionRef.current.onspeechend = () => {
         recognitionRef.current.stop();
+      };
+      recognitionRef.current.onerror = event => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'no-speech') {
+          console.warn('No speech detected. Please speak into the microphone.');
+        }
       };
     } else {
       console.warn('Speech Recognition API not supported.');
@@ -77,6 +85,12 @@ const VideoAssessment = () => {
           index += 1;
         } else {
           clearInterval(typingInterval);
+          // Start speaking the question once fully displayed
+          const utterance = new SpeechSynthesisUtterance(fullQuestion);
+          utterance.lang = 'en-US'; // Set language
+          utterance.onstart = () => console.log('Speaking:', fullQuestion);
+          utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
+          speechSynthesis.speak(utterance);
         }
       }, 50); // Adjust speed here
     }
@@ -96,13 +110,6 @@ const VideoAssessment = () => {
       }, 50); // Adjust speed here
     }
   }, [transcripts, currentQuestionIndex]);
-
-  useEffect(() => {
-    if (questions.length > 0) {
-      const utterance = new SpeechSynthesisUtterance(questions[currentQuestionIndex].question);
-      speechSynthesis.speak(utterance);
-    }
-  }, [currentQuestionIndex]);
 
   const handleStartRecording = () => {
     if (webcamRef.current && webcamRef.current.video && webcamRef.current.video.srcObject) {
