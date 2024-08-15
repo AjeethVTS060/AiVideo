@@ -1,7 +1,5 @@
-/* General Styles */
 .video-assessment-container {
   display: flex;
-  flex-direction: row; /* Row layout for larger screens */
   height: 100vh;
   background: linear-gradient(135deg, #2e2e2e, #1b1b1b);
   color: #fff;
@@ -30,7 +28,7 @@ video {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 5%; /* Percentage-based padding for better responsiveness */
+  padding: 2rem;
   background-color: #2a2a2a;
   border-left: 2px solid #444;
   animation: slideIn 1s ease-in-out;
@@ -65,12 +63,6 @@ video {
 .question-text, .answer-text {
   font-size: 1.2rem;
   line-height: 1.5;
-  word-wrap: break-word; /* Ensure text wraps properly */
-}
-
-.answer-text {
-  max-height: 100px;
-  overflow-y: auto; /* Add scrolling for longer texts */
 }
 
 .start-recording-button, .stop-recording-button {
@@ -83,15 +75,12 @@ video {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin: 0 auto; /* Center the button */
-  display: block; /* Ensure the button is centered */
 }
 
 .start-recording-button:hover, .stop-recording-button:hover {
   background-color: #0056b3;
 }
 
-/* Keyframes for Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -107,31 +96,17 @@ video {
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Responsive Styles */
-@media (max-width: 1024px) {
-  .video-assessment-container {
-    flex-direction: column; /* Stack vertically on tablets and smaller screens */
-  }
-
-  .video-section {
-    height: 50vh;
-  }
-
-  .chat-section {
-    height: 50vh;
-    padding: 2rem;
-    border-left: none; /* Remove border for smaller screens */
-    border-top: 2px solid #444; /* Add top border for smaller screens */
-  }
-}
-
 @media (max-width: 768px) {
+  .video-assessment-container {
+    flex-direction: column;
+  }
+
   .video-section {
-    height: 40vh;
+    height: 50vh;
   }
 
   .chat-section {
-    height: 60vh;
+    height: 50vh;
     padding: 1rem;
   }
 
@@ -141,28 +116,5 @@ video {
 
   .question-text, .answer-text {
     font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .video-section {
-    height: 35vh;
-  }
-
-  .chat-section {
-    height: 65vh;
-    padding: 0.5rem;
-  }
-
-  .assessment-title {
-    font-size: 1.2rem;
-  }
-
-  .question-box, .answer-box {
-    padding: 0.5rem;
-  }
-
-  .question-text, .answer-text {
-    font-size: 0.9rem;
   }
 }

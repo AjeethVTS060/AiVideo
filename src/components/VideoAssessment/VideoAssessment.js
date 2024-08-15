@@ -1,107 +1,237 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import "./VideoAssessment.css"
-// Ensure the SpeechRecognition API is available
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRecognition();
+import Webcam from 'react-webcam';
+import { FaStopCircle, FaPlay, FaClock, FaRobot, FaUser } from 'react-icons/fa';
+import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
+import FeedbackModal from '../FeedbackModal/FeedbackModal';
+import './VideoAssessment.css';
 
-recognition.continuous = false;
-recognition.interimResults = false;
-recognition.lang = 'en-US';
+const questions = [
+  { question: "What is your name?" },
+  { question: "Why do you want this job?" },
+  { question: "What are your strengths?" },
+];
 
 const VideoAssessment = () => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [questions] = useState([
-    "Tell me about yourself.",
-    "Why do you want this job?",
-    "What are your strengths?",
-    "Describe a challenging situation and how you handled it.",
-  ]);
-  const [answers, setAnswers] = useState({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
-  const videoRef = useRef(null);
+  const [displayedAnswer, setDisplayedAnswer] = useState('');
+  const [displayedQuestion, setDisplayedQuestion] = useState('');
+  const [waitingForNextQuestion, setWaitingForNextQuestion] = useState(false);
+  const [hasQuestionBeenDisplayed, setHasQuestionBeenDisplayed] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [feedbackCompleted, setFeedbackCompleted] = useState(false);
 
-  // Memoized moveToNextQuestion function
-  const moveToNextQuestion = useCallback(() => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prevQuestion) => prevQuestion + 1);
+  const webcamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  const speakText = (text, callback) => {
+    if (typeof window.speechSynthesis !== 'undefined') {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.onend = callback;
+      utterance.onerror = (event) => console.error('Speech synthesis error:', event.error);
+      window.speechSynthesis.speak(utterance);
     } else {
-      alert("Assessment complete. Thank you!");
+      console.warn('Speech Synthesis API not supported.');
     }
-  }, [currentQuestion, questions.length]);
-
-  useEffect(() => {
-    // Set up speech recognition result handling
-    recognition.onresult = (event) => {
-      const speechToText = event.results[0][0].transcript;
-      setAnswers((prevAnswers) => ({
-        ...prevAnswers,
-        [currentQuestion]: speechToText,
-      }));
-
-      setTimeout(() => {
-        moveToNextQuestion();
-      }, 10000); // Move to the next question 10 seconds after the user finishes speaking
-    };
-
-    recognition.onspeechend = () => {
-      recognition.stop();
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error detected: " + event.error);
-    };
-
-    // Access the user's webcam
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch(error => {
-        console.error("Error accessing webcam: " + error);
-      });
-  }, [currentQuestion, moveToNextQuestion]);
-
-  const startRecording = () => {
-    setIsRecording(true);
-    recognition.start();
   };
 
-  const stopRecording = () => {
+  const handleNextQuestion = useCallback(() => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      setDisplayedAnswer('');
+      setWaitingForNextQuestion(false);
+      setHasQuestionBeenDisplayed(false);
+      
+      // Start speech recognition for the next question
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+      }
+    } else {
+      handleStopRecording();
+    }
+  }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      recognitionRef.current = new window.webkitSpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        console.log("Speech recognition started");
+      };
+
+      recognitionRef.current.onresult = event => {
+        console.log("Speech recognition result received");
+        const transcript = Array.from(event.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('');
+        setDisplayedAnswer(transcript);
+        setWaitingForNextQuestion(true);
+
+        // Move to the next question after a delay
+        setTimeout(() => {
+          if (waitingForNextQuestion) {
+            handleNextQuestion();
+          }
+        }, 5000); // Adjust wait time as needed
+      };
+
+      recognitionRef.current.onspeechend = () => {
+        recognitionRef.current.stop();
+      };
+
+      recognitionRef.current.onerror = event => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'no-speech') {
+          console.warn('No speech detected. Please speak into the microphone.');
+        }
+      };
+    } else {
+      console.warn('Speech Recognition API not supported.');
+    }
+  }, [currentQuestionIndex, handleNextQuestion, waitingForNextQuestion]);
+
+  useEffect(() => {
+    if (questions.length > 0 && isRecording) {
+      const fullQuestion = questions[currentQuestionIndex].question;
+      setDisplayedQuestion(fullQuestion);
+      setHasQuestionBeenDisplayed(true);
+    }
+  }, [currentQuestionIndex, isRecording]);
+
+  useEffect(() => {
+    if (hasQuestionBeenDisplayed) {
+      speakText(displayedQuestion, () => {
+        speakText('Now tell me your answer.');
+      });
+    }
+  }, [hasQuestionBeenDisplayed, displayedQuestion]);
+
+  useEffect(() => {
+    if (displayedAnswer) {
+      const fullAnswer = displayedAnswer;
+      let index = 0;
+      const typingInterval = setInterval(() => {
+        if (index < fullAnswer.length) {
+          setDisplayedAnswer(fullAnswer.slice(0, index + 1));
+          index += 1;
+        } else {
+          clearInterval(typingInterval);
+        }
+      }, 50); // Adjust speed here
+    }
+  }, [displayedAnswer]);
+
+  const handleStartRecording = () => {
+    if (webcamRef.current && webcamRef.current.video && webcamRef.current.video.srcObject) {
+      const stream = webcamRef.current.video.srcObject;
+      try {
+        mediaRecorderRef.current = new MediaRecorder(stream, {
+          mimeType: 'video/webm',
+        });
+        mediaRecorderRef.current.addEventListener('dataavailable', handleDataAvailable);
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+        
+        // Start speech recognition only if it's not already running
+        if (recognitionRef.current && !waitingForNextQuestion) {
+          recognitionRef.current.start();
+        }
+      } catch (error) {
+        console.error("Failed to start recording:", error);
+      }
+    } else {
+      console.error("Webcam stream not available");
+    }
+  };
+
+  const handleStopRecording = () => {
+    setIsConfirmationModalOpen(true);
+  };
+
+  const handleConfirmEndExam = () => {
     setIsRecording(false);
-    recognition.stop();
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+    setIsFeedbackModalOpen(true);
+    setIsConfirmationModalOpen(false);
+  };
+
+  const handleCancelEndExam = () => {
+    setIsConfirmationModalOpen(false);
+  };
+
+  const handleDataAvailable = ({ data }) => {
+    if (data.size > 0) {
+      // Implement this function if you decide to use recordedChunks
+    }
+  };
+
+  const closeFeedbackModal = () => {
+    setIsFeedbackModalOpen(false);
+    setFeedbackCompleted(true);
   };
 
   return (
     <div className="video-assessment-container">
       <div className="video-section">
-        <video ref={videoRef} autoPlay playsInline muted></video>
+        <div className="webcam-container">
+          <Webcam audio={true} ref={webcamRef} />
+        </div>
       </div>
       <div className="chat-section">
-        <h1 className="assessment-title">Video Assessment</h1>
-        <div className="current-question">
-          <div className="question-box">
+        <h1>AI Video Assessment</h1>
+
+        {isRecording && (
+          <div className="current-question">
+            <div className="question-box">
             <div className="ai-icon">🤖</div>
-            <div className="question-text">
-              {questions[currentQuestion]}
+            
+              <div className="question-text">{displayedQuestion}</div>
             </div>
-          </div>
-          <div className="answer-box">
+            <div className="answer-box">
             <div className="user-icon">👤</div>
-            <div className="answer-text">
-              {answers[currentQuestion] || "Your answer will appear here..."}
+              <div className="answer-text">{displayedAnswer || "Your answer will appear here..."}</div>
             </div>
+            {waitingForNextQuestion && (
+              <div className="timer">
+                <FaClock /> Waiting for next question...
+              </div>
+            )}
+            <button className="stop-recording-button" onClick={handleStopRecording}>
+              <FaStopCircle /> Stop Interview
+            </button>
           </div>
-        </div>
-        {isRecording ? (
-          <button className="stop-recording-button" onClick={stopRecording}>
-            Stop Recording
+        )}
+
+        {!isRecording && !feedbackCompleted && (
+          <button className="start-recording-button" onClick={handleStartRecording}>
+            <FaPlay /> Start Interview
           </button>
-        ) : (
-          <button className="start-recording-button" onClick={startRecording}>
-            Start Recording
-          </button>
+        )}
+
+        {isFeedbackModalOpen && (
+          <FeedbackModal onClose={closeFeedbackModal} />
+        )}
+
+        {isConfirmationModalOpen && (
+          <ConfirmationModal 
+            onConfirm={handleConfirmEndExam} 
+            onCancel={handleCancelEndExam} 
+          />
+        )}
+
+        {feedbackCompleted && (
+          <div className="thank-you-message">
+            <h2>Thank you for attending the interview!</h2>
+          </div>
         )}
       </div>
     </div>
