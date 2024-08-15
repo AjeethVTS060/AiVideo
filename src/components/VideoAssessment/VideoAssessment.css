@@ -1,236 +1,120 @@
-/* Global Styles */
-html, body {
-  height: 100%;
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #1a1a1a;
-  color: #e0e0e0;
-}
-
-/* Container */
 .video-assessment-container {
   display: flex;
   height: 100vh;
+  background: linear-gradient(135deg, #2e2e2e, #1b1b1b);
+  color: #fff;
 }
 
-/* Video Section */
 .video-section {
   flex: 1;
-  position: relative;
-  background: #000;
-  overflow: hidden; /* Ensure the video doesn't overflow the container */
-}
-
-.webcam-container {
-  width: 100%;
-  height: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   position: relative;
-  border-right: 1px solid #333;
   overflow: hidden;
-  border: 5px solid #007bff; /* Pulsating border */
-  box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
-  animation: pulsate 2s infinite;
 }
 
-@keyframes pulsate {
-  0% {
-    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(0, 123, 255, 1);
-  }
-  100% {
-    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
-  }
-}
-
-.webcam-container video {
+video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
-  animation: zoomIn 3s ease-out; /* Zoom-in effect */
+  border-radius: 10px;
+  filter: grayscale(20%) contrast(1.2);
+  animation: fadeIn 1s ease-in-out;
 }
 
-@keyframes zoomIn {
-  0% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1.05);
-  }
-}
-
-/* Chat Section */
 .chat-section {
   flex: 1;
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  background: #262626;
-  overflow-y: auto;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #2a2a2a;
+  border-left: 2px solid #444;
+  animation: slideIn 1s ease-in-out;
 }
 
-h1 {
-  font-size: 28px;
-  color: #e0e0e0;
-  margin-bottom: 20px;
+.assessment-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
   text-align: center;
 }
 
-/* Current Question */
 .current-question {
-  background: #333;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-  transition: all 0.3s ease;
-  color: #e0e0e0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.current-question:hover {
-  background: #444;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.7);
+  margin-bottom: 2rem;
 }
 
 .question-box, .answer-box {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: #333;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  animation: popIn 0.5s ease-out;
 }
 
 .ai-icon, .user-icon {
-  font-size: 30px;
-  color: #007bff;
-  margin-right: 15px;
+  font-size: 2rem;
+  margin-right: 1rem;
 }
 
 .question-text, .answer-text {
-  font-size: 20px;
-  color: #ddd;
-  word-wrap: break-word;
+  font-size: 1.2rem;
+  line-height: 1.5;
 }
 
-.answer-text {
-  position: relative;
-  min-height: 40px;
-}
-
-/* Timer */
-.timer {
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  color: #007bff;
-  margin-top: 20px;
-}
-
-.timer svg {
-  margin-right: 10px;
-}
-
-/* Buttons */
 .start-recording-button, .stop-recording-button {
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 18px;
-  cursor: pointer;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: bold;
   color: #fff;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  margin-top: 20px;
-  align-self: center;
-  display: flex;
-  align-items: center;
-}
-
-.start-recording-button {
-  background-color: #28a745;
-}
-
-.stop-recording-button {
-  background-color: #dc3545;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .start-recording-button:hover, .stop-recording-button:hover {
   background-color: #0056b3;
-  transform: scale(1.05);
 }
 
-.start-recording-button svg, .stop-recording-button svg {
-  margin-right: 10px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Thank You Message */
-.thank-you-message {
-  font-size: 20px;
-  font-weight: bold;
-  color: #28a745;
-  text-align: center;
-  margin-top: 30px;
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 
-/* Scrollbar Styling for Chat Section */
-.chat-section::-webkit-scrollbar {
-  width: 8px;
+@keyframes popIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
-.chat-section::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-.chat-section::-webkit-scrollbar-thumb {
-  background-color: #444;
-  border-radius: 4px;
-}
-
-/* Media Queries */
-
-/* Tablets */
-@media (max-width: 992px) {
+@media (max-width: 768px) {
   .video-assessment-container {
     flex-direction: column;
   }
 
-  .video-section, .chat-section {
-    flex: none;
-    width: 100%;
-    height: 50%;
+  .video-section {
+    height: 50vh;
   }
 
-  .webcam-container {
-    border-right: none;
-    border-bottom: 1px solid #333;
-  }
-}
-
-/* Mobile Devices */
-@media (max-width: 576px) {
-  h1 {
-    font-size: 24px;
+  .chat-section {
+    height: 50vh;
+    padding: 1rem;
   }
 
-  .ai-icon, .user-icon {
-    font-size: 24px;
+  .assessment-title {
+    font-size: 1.5rem;
   }
 
   .question-text, .answer-text {
-    font-size: 16px;
-  }
-
-  .timer {
-    font-size: 16px;
-  }
-
-  .start-recording-button, .stop-recording-button {
-    font-size: 16px;
-    padding: 10px 20px;
+    font-size: 1rem;
   }
 }
