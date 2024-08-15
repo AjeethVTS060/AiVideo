@@ -40,11 +40,15 @@ const VideoAssessment = () => {
 
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
       setHasQuestionBeenDisplayed(false);
-      if (recognitionRef.current) recognitionRef.current.start();
+      
+      // Start speech recognition for the next question
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+      }
     } else {
       handleStopRecording();
     }
@@ -57,13 +61,20 @@ const VideoAssessment = () => {
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
+      recognitionRef.current.onstart = () => {
+        console.log("Speech recognition started");
+      };
+
       recognitionRef.current.onresult = event => {
+        console.log("Speech recognition result received");
         const transcript = Array.from(event.results)
           .map(result => result[0])
           .map(result => result.transcript)
           .join('');
         setDisplayedAnswer(transcript);
         setWaitingForNextQuestion(true);
+
+        // Move to the next question after a delay
         setTimeout(() => {
           if (waitingForNextQuestion) {
             handleNextQuestion();
@@ -127,7 +138,11 @@ const VideoAssessment = () => {
         mediaRecorderRef.current.addEventListener('dataavailable', handleDataAvailable);
         mediaRecorderRef.current.start();
         setIsRecording(true);
-        if (recognitionRef.current) recognitionRef.current.start();
+        
+        // Start speech recognition only if it's not already running
+        if (recognitionRef.current && !waitingForNextQuestion) {
+          recognitionRef.current.start();
+        }
       } catch (error) {
         console.error("Failed to start recording:", error);
       }
