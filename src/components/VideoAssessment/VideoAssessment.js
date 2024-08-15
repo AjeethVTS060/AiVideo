@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
-import { FaStopCircle, FaPlay, FaClock } from 'react-icons/fa';
+import { FaStopCircle, FaPlay, FaClock, FaRobot, FaUser } from 'react-icons/fa';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import './VideoAssessment.css';
@@ -40,7 +40,6 @@ const VideoAssessment = () => {
 
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
-      console.log('Moving to next question...');
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
@@ -63,7 +62,6 @@ const VideoAssessment = () => {
           .map(result => result[0])
           .map(result => result.transcript)
           .join('');
-        console.log('Transcript:', transcript);
         setDisplayedAnswer(transcript);
         setWaitingForNextQuestion(true);
         setTimeout(() => {
@@ -168,50 +166,58 @@ const VideoAssessment = () => {
 
   return (
     <div className="video-assessment-container">
-      <h1>AI Video Assessment</h1>
-      <div className="webcam-container">
-        <Webcam audio={true} ref={webcamRef} />
+      <div className="video-section">
+        <div className="webcam-container">
+          <Webcam audio={true} ref={webcamRef} />
+        </div>
       </div>
+      <div className="chat-section">
+        <h1>AI Video Assessment</h1>
 
-      {isRecording && (
-        <div className="current-question">
-          <h2 className="typing">{displayedQuestion}</h2>
-          <div className="answer-container">
-            <p className="typing">{displayedAnswer}</p>
-          </div>
-          {waitingForNextQuestion && (
-            <div className="timer">
-              <FaClock /> Waiting for next question...
+        {isRecording && (
+          <div className="current-question">
+            <div className="question-box">
+              <FaRobot className="ai-icon" />
+              <h2 className="question-text">{displayedQuestion}</h2>
             </div>
-          )}
-          <button className="stop-recording-button" onClick={handleStopRecording}>
-            <FaStopCircle /> Stop Recording
+            <div className="answer-box">
+              <FaUser className="user-icon" />
+              <p className="answer-text">{displayedAnswer}</p>
+            </div>
+            {waitingForNextQuestion && (
+              <div className="timer">
+                <FaClock /> Waiting for next question...
+              </div>
+            )}
+            <button className="stop-recording-button" onClick={handleStopRecording}>
+              <FaStopCircle /> Stop Recording
+            </button>
+          </div>
+        )}
+
+        {!isRecording && !feedbackCompleted && (
+          <button className="start-recording-button" onClick={handleStartRecording}>
+            <FaPlay /> Start Recording
           </button>
-        </div>
-      )}
+        )}
 
-      {!isRecording && !feedbackCompleted && (
-        <button className="start-recording-button" onClick={handleStartRecording}>
-          <FaPlay /> Start Recording
-        </button>
-      )}
+        {isFeedbackModalOpen && (
+          <FeedbackModal onClose={closeFeedbackModal} />
+        )}
 
-      {isFeedbackModalOpen && (
-        <FeedbackModal onClose={closeFeedbackModal} />
-      )}
+        {isConfirmationModalOpen && (
+          <ConfirmationModal 
+            onConfirm={handleConfirmEndExam} 
+            onCancel={handleCancelEndExam} 
+          />
+        )}
 
-      {isConfirmationModalOpen && (
-        <ConfirmationModal 
-          onConfirm={handleConfirmEndExam} 
-          onCancel={handleCancelEndExam} 
-        />
-      )}
-
-      {feedbackCompleted && (
-        <div className="thank-you-message">
-          <h2>Thank you for attending the interview!</h2>
-        </div>
-      )}
+        {feedbackCompleted && (
+          <div className="thank-you-message">
+            <h2>Thank you for attending the interview!</h2>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
