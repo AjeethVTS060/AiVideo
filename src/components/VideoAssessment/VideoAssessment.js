@@ -40,6 +40,7 @@ const VideoAssessment = () => {
 
   const handleNextQuestion = useCallback(() => {
     if (currentQuestionIndex < questions.length - 1) {
+      console.log('Moving to next question...');
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setDisplayedAnswer('');
       setWaitingForNextQuestion(false);
@@ -62,9 +63,14 @@ const VideoAssessment = () => {
           .map(result => result[0])
           .map(result => result.transcript)
           .join('');
+        console.log('Transcript:', transcript);
         setDisplayedAnswer(transcript);
         setWaitingForNextQuestion(true);
-        setTimeout(handleNextQuestion, 5000); // Adjust wait time as needed
+        setTimeout(() => {
+          if (waitingForNextQuestion) {
+            handleNextQuestion();
+          }
+        }, 5000); // Adjust wait time as needed
       };
 
       recognitionRef.current.onspeechend = () => {
@@ -80,7 +86,7 @@ const VideoAssessment = () => {
     } else {
       console.warn('Speech Recognition API not supported.');
     }
-  }, [currentQuestionIndex, handleNextQuestion]);
+  }, [currentQuestionIndex, handleNextQuestion, waitingForNextQuestion]);
 
   useEffect(() => {
     if (questions.length > 0 && isRecording) {
