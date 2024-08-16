@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
-import { FaStopCircle, FaPlay, FaClock, FaRobot, FaUser } from 'react-icons/fa';
+import { FaStopCircle, FaPlay, FaClock } from 'react-icons/fa';
 import ConfirmationModal from '../ConfirmationModal/ConfirmationModal';
 import FeedbackModal from '../FeedbackModal/FeedbackModal';
 import './VideoAssessment.css';
